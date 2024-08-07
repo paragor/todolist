@@ -1,0 +1,15 @@
+{{define "component/auth_base_challenge"}}
+    <div class="row">
+        <h2>Base auth</h2>
+    </div>
+    <div class="row">
+        <button id="enable_force_base_auth" class="btn btn-primary col-12"
+                onclick="document.cookie='base_auth_challenge=true; path=/'">Enable force login via base auth
+        </button>
+        <button id="disable_force_base_auth" class="btn btn-secondary col-12"
+                onclick="document.cookie='base_auth_challenge=false; path=/'">
+            Disable force login via base auth
+        </button>
+    </div>
+{{end}}
+

@@ -1,0 +1,75 @@
+{{define "component/task_card"}}
+    <div id="task-{{ .UUID }}" class="col-12 col-lg-6 col-xl-3 mb-4" hx-ext="response-targets">
+        <div class="card h-100">
+            <div class="card-body">
+                <div>{{ .Status.Emoji }} {{ .HtmlDescription }}</div>
+                <div id="error-{{ .UUID }}" style="background: palevioletred"></div>
+            </div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item" hx-boost="true">project: <a
+                            href="/?project={{ .Project }}">{{ .Project }}</a></li>
+                <li class="list-group-item" hx-boost="true">Tags: {{ range .Tags }}
+                        <a href="/?tags={{.}}">{{.}}</a> {{ end }}</li>
+                <li class="list-group-item small {{ if time_is_over .Due }}bg-warning{{end}}">
+                    Due: {{if ne .Due nil}}{{ .Due.Format "2006-01-02 15:04 MST" }}{{end}}</li>
+                <li class="list-group-item small">
+                    Notify: {{if ne .Due nil}}{{ .Notify.Format "2006-01-02 15:04 MST" }}{{end}}</li>
+            </ul>
+
+            <div class="card-footer">
+                <button class="btn btn-info btn-sm"
+                        hx-put="/htmx/api/save_status?uuid={{ .UUID }}&status=completed"
+                        hx-trigger="click"
+                        hx-target="#task-{{ .UUID }}"
+                        hx-target-error="#error-{{ .UUID }}"
+                >
+                    ✅
+                </button>
+                <button class="btn btn-info btn-sm"
+                        hx-put="/htmx/api/save_status?uuid={{ .UUID }}&status=pending"
+                        hx-trigger="click"
+                        hx-target="#task-{{ .UUID }}"
+                        hx-target-error="#error-{{ .UUID }}"
+                >
+                    ⏳
+                </button>
+                <button class="btn btn-primary btn-sm"
+                        hx-get="/htmx/edit_task"
+                        hx-vals="js:{uuid: '{{ .UUID }}', timezone: Intl.DateTimeFormat().resolvedOptions().timeZone}"
+                        hx-target="#modals-{{ .UUID }}"
+                        hx-trigger="click"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modals-{{ .UUID }}"
+                > ✏️
+                </button>
+                <button class="btn btn-primary btn-sm"
+                        hx-get="/htmx/copy_task"
+                        hx-vals="js:{uuid: '{{ .UUID }}', timezone: Intl.DateTimeFormat().resolvedOptions().timeZone}"
+                        hx-target="#modals-{{ .UUID }}"
+                        hx-trigger="click"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modals-{{ .UUID }}"
+                > 📄
+                </button>
+
+                <button class="btn btn-danger btn-sm"
+                        hx-put="/htmx/api/save_status?uuid={{ .UUID }}&status=deleted"
+                        hx-trigger="click"
+                        hx-target="#task-{{ .UUID }}"
+                        hx-target-error="#error-{{ .UUID }}"
+                        hx-confirm="Are you sure you wish to delete your task?"
+                > X
+                </button>
+                <div id="modals-{{ .UUID }}"
+                     class="modal modal-blur fade"
+                     aria-hidden="true"
+                     tabindex="-1"
+                >
+                    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                        <div class="modal-content"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{{end}}

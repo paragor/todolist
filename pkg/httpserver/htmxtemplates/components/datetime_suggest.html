@@ -1,0 +1,102 @@
+{{define "component/datetime_suggest"}}
+    <button class="btn btn-primary mb-2 mt-2" type="button" data-bs-toggle="collapse"
+            data-bs-target="#datetimeSuggest-{{.}}"
+            aria-expanded="false" aria-controls="datetimeSuggest-{{.}}">
+        suggest datetime
+    </button>
+    <div class="collapse" id="datetimeSuggest-{{.}}">
+        <button class="btn btn-info m-1" id="today-10-{{.}}">Today 10:00</button>
+        <button class="btn btn-info m-1" id="today-13-{{.}}">Today 13:00</button>
+        <button class="btn btn-info m-1" id="today-21-30-{{.}}">Today 21:30</button>
+        <button class="btn btn-primary m-1" id="tomorrow-10-{{.}}">Tomorrow 10:00</button>
+        <button class="btn btn-primary m-1" id="tomorrow-13-{{.}}">Tomorrow 13:00</button>
+        <button class="btn btn-primary m-1" id="tomorrow-21-30-{{.}}">Tomorrow 21:30</button>
+        <button class="btn btn-success m-1" id="plus-30-{{.}}">+30 minutes</button>
+        <button class="btn btn-success m-1" id="plus-1h-{{.}}">+1 hour</button>
+        <button class="btn btn-success m-1" id="plus-24h-{{.}}">+24 hour</button>
+        <button class="btn btn-danger m-1" id="minus-30-{{.}}">-30 minutes</button>
+        <button class="btn btn-danger m-1" id="minus-1h-{{.}}">-1 hour</button>
+        <button class="btn btn-danger m-1" id="minus-24h-{{.}}">-24 hour</button>
+    </div>
+
+    <script>
+        htmx.onLoad(function () {
+            const notifyInput = document.getElementById('{{ . }}');
+            const convertToDateTimeLocalString = (date) => {
+                const year = date.getFullYear();
+                const month = (date.getMonth() + 1).toString().padStart(2, "0");
+                const day = date.getDate().toString().padStart(2, "0");
+                const hours = date.getHours().toString().padStart(2, "0");
+                const minutes = date.getMinutes().toString().padStart(2, "0");
+
+                return `${year}-${month}-${day}T${hours}:${minutes}`;
+            }
+
+            const adjustDateTime = (e,minutes) => {
+                e.preventDefault();
+                let currentDate = new Date();
+                if (!!notifyInput.value) {
+                    currentDate = new Date(notifyInput.value);
+                }
+
+                const newDate = new Date(currentDate.getTime() + minutes * 60000);
+                notifyInput.value = convertToDateTimeLocalString(newDate)
+            }
+
+            document.getElementById('today-10-{{ . }}').addEventListener('click', (e) => {
+                e.preventDefault();
+                const today = new Date();
+                today.setHours(10, 0, 0, 0);
+                notifyInput.value = convertToDateTimeLocalString(today);
+            });
+
+            document.getElementById('today-13-{{ . }}').addEventListener('click', (e) => {
+                e.preventDefault();
+                const today = new Date();
+                today.setHours(13, 0, 0, 0);
+                notifyInput.value = convertToDateTimeLocalString(today);
+            });
+
+            document.getElementById('today-21-30-{{ . }}').addEventListener('click', (e) => {
+                e.preventDefault();
+                const today = new Date();
+                today.setHours(21, 30, 0, 0);
+                notifyInput.value = convertToDateTimeLocalString(today);
+            });
+
+            document.getElementById('tomorrow-10-{{ . }}').addEventListener('click', (e) => {
+                e.preventDefault();
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                tomorrow.setHours(10, 0, 0, 0);
+                notifyInput.value = convertToDateTimeLocalString(tomorrow);
+            });
+
+            document.getElementById('tomorrow-13-{{ . }}').addEventListener('click', (e) => {
+                e.preventDefault();
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                tomorrow.setHours(13, 0, 0, 0);
+                notifyInput.value = convertToDateTimeLocalString(tomorrow);
+            });
+
+            document.getElementById('tomorrow-21-30-{{ . }}').addEventListener('click', (e) => {
+                e.preventDefault();
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                tomorrow.setHours(21, 30, 0, 0);
+                notifyInput.value = convertToDateTimeLocalString(tomorrow);
+            });
+
+            document.getElementById('plus-30-{{ . }}').addEventListener('click', (e) => adjustDateTime(e,30));
+            document.getElementById('plus-1h-{{ . }}').addEventListener('click', (e) => adjustDateTime(e,60));
+            document.getElementById('plus-24h-{{ . }}').addEventListener('click', (e) => adjustDateTime(e,24 * 60));
+            document.getElementById('minus-30-{{ . }}').addEventListener('click', (e) => adjustDateTime(e,-30));
+            document.getElementById('minus-1h-{{ . }}').addEventListener('click', (e) => adjustDateTime(e,-60));
+            document.getElementById('minus-24h-{{ . }}').addEventListener('click', (e) => adjustDateTime(e,-24 * 60));
+
+        })
+    </script>
+
+
+{{end}}

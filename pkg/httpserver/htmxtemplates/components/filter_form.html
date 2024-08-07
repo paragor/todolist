@@ -1,0 +1,57 @@
+{{define "component/filter_form"}}
+    <div class="row">
+        <script>
+            function submitFilterForm() {
+                document.getElementById('filter_form').submit();
+            }
+        </script>
+        <div class="col-12">
+            <form class="form-inline" id="filter_form">
+                <div class="form-group mr-3">
+                    <label for="projectSelect" class="mr-2">Project</label>
+                    <select class="form-control" id="projectSelect" name="project" onchange="submitFilterForm()">
+                        <option {{ if eq .Filter.Project "" }}selected{{ end }} value></option>
+
+                        {{ range $value, $count := .AllProjects }}
+                            <option value="{{$value}}"
+                                    {{ if eq $.Filter.Project $value }}selected{{ end }}>{{$value}}
+                                ({{$count}})
+                            </option>
+                        {{end}}
+                    </select>
+                </div>
+                <div class="form-check form-check-inline mr-3">
+                    <input class="form-check-input" type="checkbox" id="show_deleted" name="show_deleted"
+                           onchange="submitFilterForm()"
+                           {{ if .Filter.ShowDeleted }}checked{{ end }}>
+                    <label class="form-check-label" for="show_deleted">Show Deleted</label>
+                </div>
+                <div class="form-check form-check-inline mr-3">
+                    <input class="form-check-input" type="checkbox" id="show_completed" name="show_completed"
+                           onchange="submitFilterForm()"
+                           {{ if .Filter.ShowCompleted }}checked{{ end }}>
+                    <label class="form-check-label" for="show_completed">Show Completed</label>
+                </div>
+                <div class="form-group mr-3">
+                    <label for="tagsSelect" class="mr-2">Tags</label>
+                    <select class="form-control selectpicker" id="tagsSelect" name="tags" multiple
+                            data-live-search="true" onchange="submitFilterForm()">
+                        {{ range $value, $count := .AllTags }}
+                            <option value="{{$value}}"
+                                    {{ if strings_contains $.Filter.Tags $value }}selected{{ end }}>{{$value}}
+                                ({{$count}})
+                            </option>
+                        {{end}}
+                    </select>
+                </div>
+                <div class="form-group mr-3">
+                    <label for="search-words" class="mr-2">Search words</label>
+                    <input class="form-control" id="search-words" name="search_words" type="text"
+                           onchange="submitFilterForm()" value="{{ join .Filter.SearchWords " " }}"/>
+                </div>
+                <button type="submit" class="btn btn-primary mt-3 mb-3">Apply Filters</button>
+                <a href="?" type="submit" class="btn btn-secondary mt-3 mb-3">Reset filters</a>
+            </form>
+        </div>
+    </div>
+{{end}}

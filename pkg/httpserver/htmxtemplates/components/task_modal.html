@@ -1,0 +1,86 @@
+{{define "component/task_modal"}}
+    <div class="modal-dialog modal-dialog-centered" hx-ext="response-targets">
+        <form class="modal-content" hx-put="/htmx/api/save_task?uuid={{.Task.UUID}}" hx-trigger="submit"
+              hx-target="#modal-success-result-{{ .Task.UUID }}" hx-target-error="#modal-fail-result-{{ .Task.UUID }}"
+        >
+            <div class="modal-header">
+                <h5 class="modal-title">Task editor</h5>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="description-{{.Task.UUID}}">Description</label>
+                    <textarea type="text" class="form-control" id="description-{{.Task.UUID}}" name="description"
+                              style="height: 150px"
+                              required>{{.Task.Description}}</textarea>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="timezone-{{ .Task.UUID }}" name="timezone" style="display: none" onload="">
+                    <label for="project-{{.Task.UUID}}">Project</label>
+                    <input type="text" list="projectOptions-{{.Task.UUID}}" class="form-control"
+                           id="project-{{.Task.UUID}}" name="project"
+                           value="{{if .Task.Project}}{{.Task.Project}}{{end}}">
+                    <datalist id="projectOptions-{{.Task.UUID}}">
+                        {{ range .ProjectOptions }}
+                        <option value="{{ . }}"> {{ end }}
+                    </datalist>
+                </div>
+                <div class="form-group">
+                    <label for="tags-{{.Task.UUID}}">Tags</label>
+                    <input type="text" list="tagsOptions-{{.Task.UUID}}" class="form-control" id="tags-{{.Task.UUID}}"
+                           name="tags"
+                           value="{{if .Task.Tags}}{{join .Task.Tags ", "}}{{end}}">
+                    <datalist id="tagsOptions-{{.Task.UUID}}">
+                        {{ range .TagsOptions }}
+                        <option value="{{ . }}">
+                            {{ end }}
+                    </datalist>
+                </div>
+                <div class="form-group">
+                    <label for="due-{{.Task.UUID}}">Due</label>
+                    <input type="datetime-local" class="form-control" id="due-{{.Task.UUID}}" name="due"
+                           value="{{if .Task.Due}}{{.Task.Due.Format "2006-01-02 15:04:05"}}{{end}}">
+                </div>
+                <div>
+                    {{ template "component/datetime_suggest" (printf "%s%s" "due-" .Task.UUID) }}
+                </div>
+                <div class="form-group">
+                    <label for="notify-{{.Task.UUID}}">Notify</label>
+                    <input type="datetime-local" class="form-control" id="notify-{{.Task.UUID}}" name="notify"
+                           value="{{if .Task.Notify}}{{.Task.Notify.Format "2006-01-02 15:04:05"}}{{end}}">
+                </div>
+                <div>
+                    {{ template "component/datetime_suggest" (printf "%s%s" "notify-" .Task.UUID) }}
+                </div>
+                <div class="form-group">
+                    <label for="status-{{.Task.UUID}}" class="mr-2">Status</label>
+                    <select class="form-control selectpicker" id="status-{{.Task.UUID}}" name="status" required>
+                        <option value="pending"
+                                {{ if or (eq .Task.Status "pending") (eq .Task.Status "") }}selected{{ end }}>pending
+                        </option>
+                        <option value="completed"
+                                {{ if eq .Task.Status "completed" }}selected{{ end }}>completed
+                        </option>
+                        <option value="deleted"
+                                {{ if eq .Task.Status "deleted" }}selected{{ end }}>deleted
+                        </option>
+                    </select>
+                </div>
+                <div class="row">
+                    <div class="col-12 bg-success" id="modal-success-result-{{ .Task.UUID }}">
+                    </div>
+                    <div class="col-12 bg-danger" id="modal-fail-result-{{ .Task.UUID }}">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Save changes</button>
+                <a type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</a>
+            </div>
+        </form>
+        <script type="text/javascript">
+            htmx.onLoad(function () {
+                document.getElementById('timezone-{{ .Task.UUID }}').value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            })
+        </script>
+    </div>
+{{end}}

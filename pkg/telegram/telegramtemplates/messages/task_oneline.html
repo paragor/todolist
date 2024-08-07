@@ -1,0 +1,1 @@
+{{define "message/task_oneline"}}{{ .HtmlDescription }} | project:{{.Project }} {{ range .Tags }}+{{.}} {{end}} {{if ne .Due nil}}{{ .Due.Format "2006-01-02 15:04 MST" }}{{end}}{{end}}

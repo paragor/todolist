@@ -1,0 +1,7 @@
+{{define "message/task"}}
+project: {{.Project }}
+tags: {{ range .Tags }} {{.}}{{end}}
+* due: {{if ne .Due nil}}{{ .Due.Format "2006-01-02 15:04 MST" }}{{end}}
+* notify: {{if ne .Notify nil}}{{ .Notify.Format "2006-01-02 15:04 MST" }}{{end}}
+{{ .Status.Emoji }} {{ .HtmlDescription }}   
+{{end}}

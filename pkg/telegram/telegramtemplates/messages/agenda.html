@@ -1,0 +1,4 @@
+{{define "message/agenda"}}{{ range . }}
+<b>{{ .Group }}:</b>{{range .Tasks}}
+* {{ template "message/task_oneline" . }}{{end}}
+{{ end }}{{end}}

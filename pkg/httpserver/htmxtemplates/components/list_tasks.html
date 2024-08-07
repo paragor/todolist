@@ -1,0 +1,9 @@
+{{define "component/list_tasks"}}
+        {{ if .FilterContext.Enabled }}
+                {{ template "component/filter_form" .FilterContext }}
+        {{ end }}
+
+        <div class="row">
+            {{range .Tasks}}{{ template "component/task_card" .}}{{end}}
+        </div>
+{{end}}

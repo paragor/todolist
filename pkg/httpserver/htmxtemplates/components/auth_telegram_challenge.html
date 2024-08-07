@@ -1,0 +1,25 @@
+{{define "component/auth_telegram_challenge"}}
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script type="text/javascript">
+        htmx.onLoad(function () {
+            try {
+                telegramData = window.Telegram.WebApp.initData
+                if (!!telegramData) {
+                    console.log("telegram auth - ok")
+                    const d = new Date();
+                    d.setTime(d.getTime() + (24 * 60 * 60 * 1000));
+                    let expires = "expires=" + d.toUTCString();
+                    document.cookie = "telegram_data" + "=" + telegramData + ";" + expires + ";path=/";
+                    // history.back()
+                    location.reload();
+                    return
+                }
+                console.log("telegram auth - no data")
+            } catch (e) {
+                console.log("telegram auth - exception")
+                console.log(e)
+            }
+        })
+    </script>
+{{end}}
+

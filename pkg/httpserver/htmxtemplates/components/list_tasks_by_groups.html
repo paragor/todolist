@@ -1,0 +1,58 @@
+{{define "component/list_tasks_by_groups"}}
+    {{ if .FilterContext.Enabled }}
+        {{ template "component/filter_form" .FilterContext }}
+    {{ end }}
+    <div class="row mb-3">
+        <div class="col-2">
+            <button class="btn btn-primary" id="expandAll">Expand All</button>
+        </div>
+        <div class="col-2">
+            <button class="btn btn-secondary" id="collapseAll">Collapse All</button>
+        </div>
+    </div>
+    {{range .GroupedTasks}}
+        <div class="row">
+            <div class="col-12 mb-3">
+                <button class="btn btn-outline-success" data-bs-toggle="collapse" href="#collapse-{{ .Group }}"
+                        role="button"
+                        aria-expanded="false" aria-controls="collapse-{{ .Group }}">{{ .Group }} ({{ len .Tasks}})
+                </button>
+            </div>
+            <div class="collapse task-group col-12" id="collapse-{{ .Group }}">
+                <div class="row">
+                    {{range .Tasks}} {{ template "component/task_card" .}} {{end}}
+                </div>
+            </div>
+        </div>
+    {{end}}
+    <script type="text/javascript">
+        htmx.onLoad(function () {
+            document.getElementById('collapseAll').addEventListener('click', function () {
+                document.querySelectorAll('.task-group').forEach(function (collapseElement) {
+                    const bsCollapse = new bootstrap.Collapse(collapseElement, {
+                        toggle: false
+                    });
+                    bsCollapse.hide();
+                });
+            });
+
+            document.getElementById('expandAll').addEventListener('click', function () {
+                document.querySelectorAll('.task-group').forEach(function (collapseElement) {
+                    const bsCollapse = new bootstrap.Collapse(collapseElement, {
+                        toggle: false
+                    });
+                    bsCollapse.show();
+                });
+            });
+            {{ if .ExpandAll }}
+            document.querySelectorAll('.task-group').forEach(function (collapseElement) {
+                const bsCollapse = new bootstrap.Collapse(collapseElement, {
+                    toggle: false
+                });
+                bsCollapse.show();
+            });
+            {{end}}
+        });
+    </script>
+
+{{end}}
