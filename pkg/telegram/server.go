@@ -96,9 +96,9 @@ func (t *TelegramServer) Start(ctx context.Context, stopper chan<- error) error 
 		stopper <- fmt.Errorf("stop telegram")
 	}()
 
-	notifier := newNotifier(time.Second*63, t.db, t)
+	notifier := newNotifier(t.db, t)
 	go func() {
-		err := notifier.start(ctx)
+		err := notifier.Start(ctx)
 		stopper <- fmt.Errorf("stop telegram.notifier: %w", err)
 	}()
 	go func() {

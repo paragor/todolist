@@ -6,48 +6,66 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/paragor/todo/pkg/cron"
+	"github.com/paragor/todo/pkg/events"
 	"github.com/paragor/todo/pkg/models"
 	"log"
+	"sync"
 	"time"
 )
 
 type Notifier struct {
-	notifyRefreshTime time.Duration
-	notifyState       map[uuid.UUID]*cron.Cron
-	notifyErrChan     chan error
-	db                models.Repository
-	telegram          *TelegramServer
+	notifyState    map[uuid.UUID]*cron.Cron
+	notifyErrChan  chan error
+	refreshErrChan chan error
+	db             models.Repository
+	telegram       *TelegramServer
+	m              sync.Mutex
 }
 
-func newNotifier(refreshTime time.Duration, db models.Repository, telegram *TelegramServer) *Notifier {
+func newNotifier(db models.Repository, telegram *TelegramServer) *Notifier {
 	return &Notifier{
-		notifyRefreshTime: refreshTime,
-		notifyState:       map[uuid.UUID]*cron.Cron{},
-		notifyErrChan:     make(chan error, 1000),
-		db:                db,
-		telegram:          telegram,
+		notifyState:    map[uuid.UUID]*cron.Cron{},
+		notifyErrChan:  make(chan error, 1000),
+		refreshErrChan: make(chan error, 1),
+		db:             db,
+		telegram:       telegram,
 	}
 }
 
-func (n *Notifier) start(ctx context.Context) error {
+func (n *Notifier) Start(ctx context.Context) error {
+	err := n.refreshState()
+	if err != nil {
+		n.close()
+		return err
+	}
+	events.RegisterOnDatabaseChangeSubscriber(n)
+	defer events.UnRegisterOnDatabaseChangeSubscriber(n)
 	for {
-		err := n.refreshState()
-		if err != nil {
-			n.close()
-			return err
-		}
 		select {
-		case <-time.After(n.notifyRefreshTime):
 		case err := <-n.notifyErrChan:
 			if err != nil {
 				return fmt.Errorf("cron job return error: %w", err)
+			}
+		case err := <-n.refreshErrChan:
+			if err != nil {
+				return fmt.Errorf("refresh state return error: %w", err)
 			}
 		case <-ctx.Done():
 			return ctx.Err()
 		}
 	}
 }
+
+func (n *Notifier) OnDatabaseChange() {
+	err := n.refreshState()
+	if err != nil {
+		n.notifyErrChan <- err
+	}
+}
+
 func (n *Notifier) refreshState() error {
+	n.m.Lock()
+	defer n.m.Unlock()
 	tasks, err := n.db.All()
 	if err != nil {
 		return fmt.Errorf("cant get task list: %w", err)

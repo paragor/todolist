@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"github.com/paragor/todo/pkg/cron"
 	"github.com/paragor/todo/pkg/db"
+	"github.com/paragor/todo/pkg/events"
 	"github.com/paragor/todo/pkg/httpserver"
+	"github.com/paragor/todo/pkg/models"
 	"github.com/paragor/todo/pkg/service"
 	"github.com/paragor/todo/pkg/telegram"
 	"github.com/spf13/cobra"
@@ -19,12 +21,15 @@ var serverCmd = &cobra.Command{
 	Use:   "server",
 	Short: "Run todolist server",
 	Run: func(cmd *cobra.Command, args []string) {
-		repo := db.NewInMemoryTasksRepository(cfg.Server.DatabaseFile)
-
 		runner := service.NewRunner()
-		runnable := []service.Runnable{
-			repo,
+		runnable := []service.Runnable{}
+		var repo models.Repository
+		{
+			originRepo := db.NewInMemoryTasksRepository(cfg.Server.DatabaseFile)
+			repo = events.NewSpyRepository(originRepo)
+			runnable = append(runnable, originRepo)
 		}
+		
 		authConfig := &httpserver.AuthChainConfig{
 			AuthBaseConfig:     nil,
 			AuthTelegramConfig: nil,
