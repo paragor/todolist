@@ -23,6 +23,14 @@ type Task struct {
 	Notify      *time.Time `json:"notify,omitempty"`
 }
 
+func NewTask() *Task {
+	return &Task{
+		UUID:      uuid.New(),
+		CreatedAt: time.Now(),
+		Status:    Pending,
+	}
+}
+
 const ProjectSelectorEmpty = "__empty__"
 
 func NewTaskStatus(status string) (taskStatus, error) {

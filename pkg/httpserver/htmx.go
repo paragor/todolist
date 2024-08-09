@@ -354,16 +354,7 @@ func (h *httpServer) htmxCopyTask(writer http.ResponseWriter, request *http.Requ
 }
 
 func (h *httpServer) htmxNewTask(writer http.ResponseWriter, request *http.Request) {
-	task := &models.Task{
-		UUID:        uuid.New(),
-		Description: "",
-		Project:     "",
-		Tags:        nil,
-		Status:      models.Pending,
-		CreatedAt:   time.Now(),
-		Due:         nil,
-		Notify:      nil,
-	}
+	task := models.NewTask()
 	context, err := h.htmxGenerateTaskModalContext(task)
 	if err != nil {
 		http.Error(writer, "cant generate context: "+err.Error(), 500)
@@ -462,10 +453,8 @@ func (h *httpServer) htmxSaveTask(writer http.ResponseWriter, request *http.Requ
 
 	if task == nil {
 		isNewTask = true
-		task = &models.Task{
-			UUID:      parsedUUID,
-			CreatedAt: time.Now(),
-		}
+		task = models.NewTask()
+		task.UUID = parsedUUID
 	}
 	task.Status = parsedStatus
 	task.Description = description
