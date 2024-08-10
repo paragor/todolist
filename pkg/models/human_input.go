@@ -60,12 +60,26 @@ OPTIONS
 
     due:TIME
         Sets the due date for the task. TIME can be in formats:
-        2006-01-02T15:04:05Z07:00, 2006-01-02T15:04:05, 2006-01-02, 2006.01.02, 02.01.2006, 15:04:05, 15:04
+		Full datetime:
+			2006-01-02T15:04:05Z07:00, 2006-01-02T15:04:05
+		Date only (zero for time will be used):
+			2006-01-02, 2006.01.02, 02.01.2006
+		Time only (today date will be used):
+			15:04:05, 15:04
+		Relative time from now:
+			+1h, -30m
         Example: due:2024-08-20T15:00:00
 
     notify:TIME
         Sets a notification time for the task. TIME can be in formats:
-        2006-01-02T15:04:05Z07:00, 2006-01-02T15:04:05, 2006-01-02, 2006.01.02, 02.01.2006, 15:04:05, 15:04
+		Full datetime:
+			2006-01-02T15:04:05Z07:00, 2006-01-02T15:04:05
+		Date only (zero for time will be used):
+			2006-01-02, 2006.01.02, 02.01.2006
+		Time only (today date will be used):
+			15:04:05, 15:04
+		Relative time from now:
+			+1h, -30m
         Example: notify:2024-08-15T12:00:00
 
     ExtraWords...
@@ -353,6 +367,20 @@ func parseHumanInputTime(word string) (time.Time, error) {
 	if t, err := time.Parse(time.RFC3339, word); err == nil {
 		return t, nil
 	}
+	if strings.HasPrefix(word, "+") {
+		duration, err := time.ParseDuration(strings.TrimPrefix(word, "+"))
+		if err != nil {
+			return time.Time{}, fmt.Errorf("cant parse duration: %w", err)
+		}
+		return time.Now().Add(duration), nil
+	}
+	if strings.HasPrefix(word, "-") {
+		duration, err := time.ParseDuration(strings.TrimPrefix(word, "-"))
+		if err != nil {
+			return time.Time{}, fmt.Errorf("cant parse duration: %w", err)
+		}
+		return time.Now().Add(-duration), nil
+	}
 	if t, err := time.Parse("2006-01-02T15:04:05", word); err == nil {
 		return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), 0, time.Local), nil
 	}
@@ -380,5 +408,7 @@ func parseHumanInputTime(word string) (time.Time, error) {
 		"02.01.2006",
 		time.TimeOnly,
 		"15:04",
+		"+1h",
+		"-30m",
 	}, ", "))
 }
