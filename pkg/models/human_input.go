@@ -39,7 +39,7 @@ ACTIONS
         Set status completed for task by the given UUID.
 
     agenda
-        Show tasks that due today, next 7 day and overdue
+        Show tasks that have due today, next 7 day and overdue
 
 OPTIONS
     project:PROJECT_NAME
