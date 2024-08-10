@@ -1,8 +1,14 @@
 {{define "component/datetime_suggest"}}
-    <button class="btn btn-primary mb-2 mt-2" type="button" data-bs-toggle="collapse"
+    <button class="btn btn-info mb-2 mt-2" type="button" data-bs-toggle="collapse"
             data-bs-target="#datetimeSuggest-{{.}}"
             aria-expanded="false" aria-controls="datetimeSuggest-{{.}}">
-        suggest datetime
+        Suggest
+    </button>
+    <button class="btn btn-secondary mb-2 mt-2" type="button"
+            id="reset-{{.}}"
+            data-bs-target="#datetimeSuggest-{{.}}"
+            >
+        Reset
     </button>
     <div class="collapse" id="datetimeSuggest-{{.}}">
         <button class="btn btn-info m-1" id="today-10-{{.}}">Today 10:00</button>
@@ -42,6 +48,11 @@
                 const newDate = new Date(currentDate.getTime() + minutes * 60000);
                 notifyInput.value = convertToDateTimeLocalString(newDate)
             }
+            
+            document.getElementById('reset-{{ . }}').addEventListener('click', (e) => {
+                e.preventDefault();
+                notifyInput.value = '';
+            })
 
             document.getElementById('today-10-{{ . }}').addEventListener('click', (e) => {
                 e.preventDefault();
