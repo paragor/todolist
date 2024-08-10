@@ -3,3 +3,4 @@ build:
 
 install:
 	CGO_ENABLED=0 go build -o /usr/local/bin/todolist main.go
+	/usr/local/bin/todolist config-persist
