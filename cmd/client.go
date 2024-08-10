@@ -24,52 +24,57 @@ var clientCmd = &cobra.Command{
 	Use:   "client",
 	Short: "Run todolist console client",
 	Long:  models.HumanInputHelp,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		if clientOutput != "json" && clientOutput != "table" {
-			log.Fatalln("unknown output format")
+			return fmt.Errorf("unknown output format")
+		}
+		input := strings.Join(args, " ")
+		strings.TrimSpace(input)
+		if len(input) == 0 {
+			return fmt.Errorf("empty input")
 		}
 		repo := db.NewRemoteRepository(cfg.Client.RemoteAddr, cfg.Client.ServerToken, http.DefaultClient)
 		if err := repo.Ping(); err != nil {
 			log.Fatalf("cant connect to server: %s", err.Error())
 		}
 
-		input, err := models.ParseHumanInput(strings.Join(args, " "))
+		parsedInput, err := models.ParseHumanInput(input)
 		if err != nil {
 			log.Fatalf("cant parse command: %s", err.Error())
 		}
 		var result []*models.Task
-		switch input.Action {
+		switch parsedInput.Action {
 		case models.HumanActionInfo:
-			task, err := repo.Get(*input.ActionUUID)
+			task, err := repo.Get(*parsedInput.ActionUUID)
 			if err != nil {
 				log.Fatalf("cant fetch task: %s", err.Error())
 			}
 			result = []*models.Task{task}
 		case models.HumanActionAdd:
 			task := models.NewTask()
-			input.Options.ModifyTask(task)
+			parsedInput.Options.ModifyTask(task)
 			if err := repo.Insert(task); err != nil {
 				log.Fatalf("cant insert task: %s", err.Error())
 			}
 			result = []*models.Task{task}
 		case models.HumanActionModify, models.HumanActionDone:
-			task, err := repo.Get(*input.ActionUUID)
+			task, err := repo.Get(*parsedInput.ActionUUID)
 			if err != nil {
 				log.Fatalf("cant fetch task: %s", err.Error())
 			}
-			input.Options.ModifyTask(task)
+			parsedInput.Options.ModifyTask(task)
 			if err := repo.Insert(task); err != nil {
 				log.Fatalf("cant insert task: %s", err.Error())
 			}
 			result = []*models.Task{task}
 		case models.HumanActionCopy:
-			task, err := repo.Get(*input.ActionUUID)
+			task, err := repo.Get(*parsedInput.ActionUUID)
 			if err != nil {
 				log.Fatalf("cant fetch task: %s", err.Error())
 			}
-			input.Options.ModifyTask(task)
+			parsedInput.Options.ModifyTask(task)
 			task = task.Clone(true)
-			if task.Status != models.Pending && input.Options.Status == nil {
+			if task.Status != models.Pending && parsedInput.Options.Status == nil {
 				task.Status = models.Pending
 			}
 			if err := repo.Insert(task); err != nil {
@@ -81,10 +86,10 @@ var clientCmd = &cobra.Command{
 			if err != nil {
 				log.Fatalf("cant get tasks: %s", err.Error())
 			}
-			tasks = input.Options.ToListFilter().Apply(tasks)
+			tasks = parsedInput.Options.ToListFilter().Apply(tasks)
 			result = tasks
 		default:
-			log.Fatalf("unkown action: %s", input.Action)
+			log.Fatalf("unkown action: %s", parsedInput.Action)
 		}
 
 		if clientOutput == "json" {
@@ -92,6 +97,7 @@ var clientCmd = &cobra.Command{
 		} else {
 			fmt.Println(prettyOutputTable(result))
 		}
+		return nil
 	},
 }
 
