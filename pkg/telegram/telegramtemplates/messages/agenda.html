@@ -1,4 +1,3 @@
-{{define "message/agenda"}}{{ range . }}
-<b>{{ .Group }}:</b>{{range .Tasks}}
-* {{ template "message/task_oneline" . }}{{end}}
-{{ end }}{{end}}
+{{define "message/agenda"}}Agenda for <b>{{ now.Format "Monday 01.02.2006" }}</b>
+{{ range . }}
+<b>{{ .Group }}:</b>{{ template "message/tasks_shortlist" .Tasks }}{{end}}{{end}}

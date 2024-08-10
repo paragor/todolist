@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/paragor/todo/pkg/httpserver/htmxtemplates"
 	"github.com/paragor/todo/pkg/models"
+	"github.com/paragor/todo/pkg/templatesutils"
 	"html/template"
 	"net/http"
 	"sort"
@@ -16,25 +17,7 @@ import (
 var templates *template.Template
 
 func init() {
-	functions := map[string]interface{}{
-		"strings_contains": func(slice []string, item string) bool {
-			for _, v := range slice {
-				if v == item {
-					return true
-				}
-			}
-			return false
-		},
-		"join": strings.Join,
-		"time_is_over": func(date *time.Time) bool {
-			if date == nil {
-				return false
-			}
-			return date.Before(time.Now())
-		},
-	}
-
-	templates = template.New("").Funcs(functions)
+	templates = template.New("").Funcs(templatesutils.GetFunctions())
 	templates = must(templates.ParseFS(htmxtemplates.Components, "components/*.html"))
 	templates = must(templates.ParseFS(htmxtemplates.Pages, "pages/*.html"))
 }

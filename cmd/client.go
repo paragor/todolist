@@ -23,6 +23,7 @@ func init() {
 var clientCmd = &cobra.Command{
 	Use:   "client",
 	Short: "Run todolist console client",
+	Long:  models.HumanInputHelp,
 	Run: func(cmd *cobra.Command, args []string) {
 		if clientOutput != "json" && clientOutput != "table" {
 			log.Fatalln("unknown output format")
@@ -51,12 +52,26 @@ var clientCmd = &cobra.Command{
 				log.Fatalf("cant insert task: %s", err.Error())
 			}
 			result = []*models.Task{task}
-		case models.HumanActionModify:
+		case models.HumanActionModify, models.HumanActionDone:
 			task, err := repo.Get(*input.ActionUUID)
 			if err != nil {
 				log.Fatalf("cant fetch task: %s", err.Error())
 			}
 			input.Options.ModifyTask(task)
+			if err := repo.Insert(task); err != nil {
+				log.Fatalf("cant insert task: %s", err.Error())
+			}
+			result = []*models.Task{task}
+		case models.HumanActionCopy:
+			task, err := repo.Get(*input.ActionUUID)
+			if err != nil {
+				log.Fatalf("cant fetch task: %s", err.Error())
+			}
+			input.Options.ModifyTask(task)
+			task = task.Clone(true)
+			if task.Status != models.Pending && input.Options.Status == nil {
+				task.Status = models.Pending
+			}
 			if err := repo.Insert(task); err != nil {
 				log.Fatalf("cant insert task: %s", err.Error())
 			}

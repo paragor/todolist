@@ -9,6 +9,84 @@ import (
 	"unicode"
 )
 
+const HumanInputHelp = `
+NAME
+    HumanInputParser - Command-line style parser for task management.
+
+SYNOPSIS
+    [action] [UUID] [options...]
+
+DESCRIPTION
+    HumanInputParser processes input strings to manage tasks, supporting actions like adding, modifying, listing, and retrieving task information. The input should start with a valid action followed by optional parameters like project, tags, due dates, and notifications.
+
+ACTIONS
+    add
+        Adds a new task with specified options.
+
+    modify UUID
+        Modifies an existing task identified by the given UUID. Requires the task's UUID as the second argument.
+
+    list
+        Lists tasks filtered by the specified options.
+
+    info UUID
+        Retrieves detailed information about a task identified by the given UUID.
+
+    copy UUID
+        Create new task with copy fields from UUID.
+
+    done UUID
+        Set status completed for task by the given UUID.
+
+OPTIONS
+    project:PROJECT_NAME
+        Specifies the project name associated with the task. 
+        Example: project:MyProject
+
+    status:STATUS
+        Sets the task's status. Valid values include pending, completed, deleted.
+        Example: status:pending
+
+    +TAG
+        Adds a tag to the task. Multiple tags can be added by repeating this option with different tags.
+        Example: +urgent +work
+
+    !TAG
+        Removes a tag from the task.
+        Example: !urgent !work
+
+    due:TIME
+        Sets the due date for the task. TIME can be in formats:
+        2006-01-02T15:04:05Z07:00, 2006-01-02T15:04:05, 2006-01-02, 2006.01.02, 02.01.2006, 15:04:05, 15:04
+        Example: due:2024-08-20T15:00:00
+
+    notify:TIME
+        Sets a notification time for the task. TIME can be in formats:
+        2006-01-02T15:04:05Z07:00, 2006-01-02T15:04:05, 2006-01-02, 2006.01.02, 02.01.2006, 15:04:05, 15:04
+        Example: notify:2024-08-15T12:00:00
+
+    ExtraWords...
+        Any additional words or phrases will be added to the task's description.
+		For list action words used as search words.
+        Example: prepare quarterly report
+
+EXAMPLES
+    Add a new task with tags and project:
+        add +urgent +work project:NewProject prepare presentation
+
+    Modify an existing task by UUID, setting a new due date and description:
+        modify 123e4567-e89b-12d3-a456-426614174000 due:2024-08-20 it is new description
+
+    List tasks by project and tag:
+        list project:MyProject +urgent
+
+    Retrieve information about a specific task:
+        info 123e4567-e89b-12d3-a456-426614174000
+
+    Clone task with new description:
+        copy 123e4567-e89b-12d3-a456-426614174000 hue mae
+`
+
 type HumanAction string
 
 const (
@@ -16,6 +94,8 @@ const (
 	HumanActionAdd    HumanAction = "add"
 	HumanActionModify HumanAction = "modify"
 	HumanActionInfo   HumanAction = "info"
+	HumanActionCopy   HumanAction = "copy"
+	HumanActionDone   HumanAction = "done"
 )
 
 type HumanInputParserResult struct {
@@ -112,7 +192,7 @@ func (o *HumanInputOptions) ToListFilter() *ListFilter {
 	if o.Status != nil {
 		filter.ShowPending = *o.Status == Pending
 		filter.ShowCompleted = *o.Status == Completed
-		filter.ShowPending = *o.Status == Deleted
+		filter.ShowDeleted = *o.Status == Deleted
 	}
 	return filter
 }
@@ -137,6 +217,10 @@ func ParseHumanInput(input string) (*HumanInputParserResult, error) {
 		action = HumanActionList
 	case string(HumanActionInfo):
 		action = HumanActionInfo
+	case string(HumanActionCopy):
+		action = HumanActionCopy
+	case string(HumanActionDone):
+		action = HumanActionDone
 	default:
 		return nil, fmt.Errorf("invalid action: %s", input[:firstSpace])
 	}
@@ -150,7 +234,7 @@ func ParseHumanInput(input string) (*HumanInputParserResult, error) {
 	}
 	input = input[firstSpace+1:]
 	input = strings.TrimSpace(input)
-	if action == HumanActionModify || action == HumanActionInfo {
+	if action == HumanActionModify || action == HumanActionInfo || action == HumanActionCopy || action == HumanActionDone {
 		secondSpace := strings.IndexFunc(input, unicode.IsSpace)
 		if secondSpace < 0 {
 			secondSpace = len(input)
@@ -161,6 +245,13 @@ func ParseHumanInput(input string) (*HumanInputParserResult, error) {
 		}
 		result.ActionUUID = &UUID
 		input = input[secondSpace:]
+	}
+	if action == HumanActionDone {
+		completedStatus := Completed
+		result.Options = HumanInputOptions{
+			Status: &completedStatus,
+		}
+		return result, nil
 	}
 	options, err := parseHumanOptions(input)
 	if err != nil {
@@ -184,6 +275,7 @@ func parseHumanOptions(input string) (*HumanInputOptions, error) {
 		}
 		if strings.HasPrefix(word, "status:") {
 			status := strings.TrimPrefix(word, "status:")
+			status = strings.ToLower(status)
 			if len(status) == 0 {
 				return nil, fmt.Errorf("empty status")
 			}
@@ -198,8 +290,8 @@ func parseHumanOptions(input string) (*HumanInputOptions, error) {
 			result.Tags = append(result.Tags, AddOrDeleteValue[string]{IsExists: true, IsAdd: true, Value: strings.ToLower(strings.TrimPrefix(word, "+"))})
 			continue
 		}
-		if strings.HasPrefix(word, "-") {
-			result.Tags = append(result.Tags, AddOrDeleteValue[string]{IsExists: true, IsAdd: false, Value: strings.ToLower(strings.TrimPrefix(word, "-"))})
+		if strings.HasPrefix(word, "!") {
+			result.Tags = append(result.Tags, AddOrDeleteValue[string]{IsExists: true, IsAdd: false, Value: strings.ToLower(strings.TrimPrefix(word, "!"))})
 			continue
 		}
 		if strings.HasPrefix(word, "due:") {

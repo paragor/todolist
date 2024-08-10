@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/google/uuid"
 	"github.com/paragor/todo/pkg/models"
 	tele "gopkg.in/telebot.v3"
 	"gopkg.in/telebot.v3/middleware"
@@ -62,6 +61,7 @@ func (t *TelegramServer) Start(ctx context.Context, stopper chan<- error) error 
 			}
 			_ = c.Notify(tele.Typing)
 			if err := next(c); err != nil {
+				_ = t.sendMessageHtml("error: " + err.Error())
 				log.Printf("telegram ERROR: %s", err)
 			}
 			return err
@@ -73,7 +73,17 @@ func (t *TelegramServer) Start(ctx context.Context, stopper chan<- error) error 
 	b.Handle("/agenda", func(c tele.Context) error {
 		return t.TriggerAgenda()
 	})
+	b.Handle("/help", func(c tele.Context) error {
+		return t.sendMessageHtml(models.HumanInputHelp)
+	})
+	b.Handle(tele.OnText, func(c tele.Context) error {
+		return t.humanInput(c.Message().Text)
+	})
 	commands := []tele.Command{
+		{
+			Text:        "help",
+			Description: "Help",
+		},
 		{
 			Text:        "start",
 			Description: "Web app link",
@@ -113,81 +123,4 @@ func (t *TelegramServer) Stop() {
 	if t.cancel != nil {
 		t.cancel()
 	}
-}
-
-type sendOption func(o *tele.SendOptions)
-
-func (t *TelegramServer) withMainPageWebApp() sendOption {
-	return func(o *tele.SendOptions) {
-		reply := &tele.ReplyMarkup{}
-		reply.Inline(
-			reply.Split(
-				1,
-				[]tele.Btn{
-					reply.WebApp(
-						"Main page",
-						&tele.WebApp{URL: t.serverPublicUrl + "/"},
-					),
-				},
-			)...,
-		)
-		o.ReplyMarkup = reply
-	}
-}
-func (t *TelegramServer) withAgendaWebApp() sendOption {
-	return func(o *tele.SendOptions) {
-		reply := &tele.ReplyMarkup{}
-		reply.Inline(
-			reply.Split(
-				1,
-				[]tele.Btn{
-					reply.WebApp(
-						"Agenda",
-						&tele.WebApp{URL: t.serverPublicUrl + "/agenda"},
-					),
-				},
-			)...,
-		)
-		o.ReplyMarkup = reply
-	}
-}
-func (t *TelegramServer) withTaskWebApp(uuid uuid.UUID) sendOption {
-	return func(o *tele.SendOptions) {
-		reply := &tele.ReplyMarkup{}
-		reply.Inline(
-			reply.Split(
-				1,
-				[]tele.Btn{
-					reply.WebApp(
-						"Task info",
-						&tele.WebApp{URL: t.serverPublicUrl + "/task?uuid=" + uuid.String()},
-					),
-				},
-			)...,
-		)
-		o.ReplyMarkup = reply
-	}
-}
-
-func (t *TelegramServer) withEnableNotifications() sendOption {
-	return func(o *tele.SendOptions) {
-		o.DisableNotification = false
-	}
-}
-
-func (t *TelegramServer) sendMessageHtml(msg string, options ...sendOption) error {
-	sendOptions := &tele.SendOptions{
-		DisableNotification:   true,
-		DisableWebPagePreview: true,
-		ParseMode:             tele.ModeHTML,
-	}
-	for _, option := range options {
-		option(sendOptions)
-	}
-	_, err := t.bot.Send(t.chat, msg, sendOptions)
-	if err != nil {
-		return fmt.Errorf("telegram send message: %w", err)
-	}
-
-	return nil
 }
