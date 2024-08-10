@@ -9,15 +9,23 @@ import (
 	"github.com/spf13/cobra"
 	"log"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 )
 
 var clientOutput = "table"
+var clientOutputAllowed = []string{"table", "json", "csv", "markdown", "html", "tsv"}
 
 func init() {
 	rootCmd.AddCommand(clientCmd)
-	clientCmd.Flags().StringVarP(&clientOutput, "output", "o", clientOutput, "output format (json, table)")
+	clientCmd.Flags().StringVarP(
+		&clientOutput,
+		"output",
+		"o",
+		clientOutput,
+		fmt.Sprintf("output format (%s)", strings.Join(clientOutputAllowed, ", ")),
+	)
 }
 
 var clientCmd = &cobra.Command{
@@ -25,7 +33,7 @@ var clientCmd = &cobra.Command{
 	Short: "Run todolist console client",
 	Long:  models.HumanInputHelp,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if clientOutput != "json" && clientOutput != "table" {
+		if !slices.Contains(clientOutputAllowed, clientOutput) {
 			return fmt.Errorf("unknown output format")
 		}
 		input := strings.Join(args, " ")
@@ -111,7 +119,7 @@ func outputAgenda(agenda []models.TaskGroup) {
 	if clientOutput == "json" {
 		fmt.Println(prettyOutputJson(agenda))
 	} else {
-		fmt.Println(prettyOutputTasksGroupsTable(agenda))
+		fmt.Println(outputTableWriter(prettyOutputTasksGroupsTable(agenda)))
 	}
 }
 
@@ -119,10 +127,28 @@ func outputTasks(tasks []*models.Task) {
 	if clientOutput == "json" {
 		fmt.Println(prettyOutputJson(tasks))
 	} else {
-		fmt.Println(prettyOutputTasksTable(tasks))
+		fmt.Println(outputTableWriter(prettyOutputTasksTable(tasks)))
 	}
 }
-func prettyOutputTasksGroupsTable(groups []models.TaskGroup) string {
+
+func outputTableWriter(tableWriter table.Writer) string {
+	switch clientOutput {
+	case "table":
+		return tableWriter.Render()
+	case "csv":
+		return tableWriter.RenderCSV()
+	case "markdown":
+		return tableWriter.RenderMarkdown()
+	case "html":
+		return tableWriter.RenderHTML()
+	case "tsv":
+		return tableWriter.RenderTSV()
+	default:
+		return tableWriter.Render()
+	}
+}
+
+func prettyOutputTasksGroupsTable(groups []models.TaskGroup) table.Writer {
 	tableWriter := table.NewWriter()
 	headerRow := tableGetTasksHeaderRow()
 	tableWriter.AppendHeader(headerRow)
@@ -138,14 +164,14 @@ func prettyOutputTasksGroupsTable(groups []models.TaskGroup) string {
 		tableWriter.AppendSeparator()
 		tableWriter.AppendRows(tableGetTasksBodyRows(group.Tasks))
 	}
-	return tableWriter.Render()
+	return tableWriter
 }
 
-func prettyOutputTasksTable(tasks []*models.Task) string {
+func prettyOutputTasksTable(tasks []*models.Task) table.Writer {
 	tableWriter := table.NewWriter()
 	tableWriter.AppendHeader(tableGetTasksHeaderRow())
 	tableWriter.AppendRows(tableGetTasksBodyRows(tasks))
-	return tableWriter.Render()
+	return tableWriter
 }
 
 func tableGetTasksHeaderRow() table.Row {

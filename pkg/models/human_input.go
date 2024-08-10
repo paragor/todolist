@@ -225,23 +225,13 @@ func ParseHumanInput(input string) (*HumanInputParserResult, error) {
 		firstSpace = len(input)
 	}
 	result := &HumanInputParserResult{}
-	var action HumanAction
-	switch strings.ToLower(input[:firstSpace]) {
-	case string(HumanActionAdd):
-		action = HumanActionAdd
-	case string(HumanActionModify):
-		action = HumanActionModify
-	case string(HumanActionList):
-		action = HumanActionList
-	case string(HumanActionInfo):
-		action = HumanActionInfo
-	case string(HumanActionCopy):
-		action = HumanActionCopy
-	case string(HumanActionDone):
-		action = HumanActionDone
-	case string(HumanActionAgenda):
-		action = HumanActionAgenda
-	default:
+	action := HumanAction(strings.ToLower(input[:firstSpace]))
+	allActions := []HumanAction{
+		HumanActionAdd, HumanActionModify, HumanActionList,
+		HumanActionInfo, HumanActionCopy, HumanActionDone,
+		HumanActionAgenda,
+	}
+	if !slices.Contains(allActions, action) {
 		return nil, fmt.Errorf("invalid action: %s", input[:firstSpace])
 	}
 	result.Action = action
