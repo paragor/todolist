@@ -42,21 +42,22 @@ var clientCmd = &cobra.Command{
 		if err != nil {
 			log.Fatalf("cant parse command: %s", err.Error())
 		}
-		var result []*models.Task
 		switch parsedInput.Action {
 		case models.HumanActionInfo:
 			task, err := repo.Get(*parsedInput.ActionUUID)
 			if err != nil {
 				log.Fatalf("cant fetch task: %s", err.Error())
 			}
-			result = []*models.Task{task}
+			outputTasks([]*models.Task{task})
+			return nil
 		case models.HumanActionAdd:
 			task := models.NewTask()
 			parsedInput.Options.ModifyTask(task)
 			if err := repo.Insert(task); err != nil {
 				log.Fatalf("cant insert task: %s", err.Error())
 			}
-			result = []*models.Task{task}
+			outputTasks([]*models.Task{task})
+			return nil
 		case models.HumanActionModify, models.HumanActionDone:
 			task, err := repo.Get(*parsedInput.ActionUUID)
 			if err != nil {
@@ -66,7 +67,8 @@ var clientCmd = &cobra.Command{
 			if err := repo.Insert(task); err != nil {
 				log.Fatalf("cant insert task: %s", err.Error())
 			}
-			result = []*models.Task{task}
+			outputTasks([]*models.Task{task})
+			return nil
 		case models.HumanActionCopy:
 			task, err := repo.Get(*parsedInput.ActionUUID)
 			if err != nil {
@@ -80,28 +82,77 @@ var clientCmd = &cobra.Command{
 			if err := repo.Insert(task); err != nil {
 				log.Fatalf("cant insert task: %s", err.Error())
 			}
-			result = []*models.Task{task}
+			outputTasks([]*models.Task{task})
+			return nil
 		case models.HumanActionList:
 			tasks, err := repo.All()
 			if err != nil {
 				log.Fatalf("cant get tasks: %s", err.Error())
 			}
 			tasks = parsedInput.Options.ToListFilter().Apply(tasks)
-			result = tasks
+			outputTasks(tasks)
+			return nil
+		case models.HumanActionAgenda:
+			tasks, err := repo.All()
+			if err != nil {
+				log.Fatalf("cant get tasks: %s", err.Error())
+			}
+			tasks = models.NewDefaultListFilter().Apply(tasks)
+			outputAgenda(models.Agenda(tasks))
+			return nil
 		default:
 			log.Fatalf("unkown action: %s", parsedInput.Action)
-		}
-
-		if clientOutput == "json" {
-			fmt.Println(prettyOutputJson(result))
-		} else {
-			fmt.Println(prettyOutputTable(result))
 		}
 		return nil
 	},
 }
 
-func prettyOutputTable(tasks []*models.Task) string {
+func outputAgenda(agenda []models.TaskGroup) {
+	if clientOutput == "json" {
+		fmt.Println(prettyOutputJson(agenda))
+	} else {
+		fmt.Println(prettyOutputTasksGroupsTable(agenda))
+	}
+}
+
+func outputTasks(tasks []*models.Task) {
+	if clientOutput == "json" {
+		fmt.Println(prettyOutputJson(tasks))
+	} else {
+		fmt.Println(prettyOutputTasksTable(tasks))
+	}
+}
+func prettyOutputTasksGroupsTable(groups []models.TaskGroup) string {
+	tableWriter := table.NewWriter()
+	headerRow := tableGetTasksHeaderRow()
+	tableWriter.AppendHeader(headerRow)
+	for i, group := range groups {
+		if i > 0 {
+			tableWriter.AppendSeparator()
+		}
+		groupNameRow := table.Row{group.Group}
+		for i := 1; i < len(headerRow); i++ {
+			groupNameRow = append(groupNameRow, "")
+		}
+		tableWriter.AppendRow(groupNameRow, table.RowConfig{AutoMerge: true})
+		tableWriter.AppendSeparator()
+		tableWriter.AppendRows(tableGetTasksBodyRows(group.Tasks))
+	}
+	return tableWriter.Render()
+}
+
+func prettyOutputTasksTable(tasks []*models.Task) string {
+	tableWriter := table.NewWriter()
+	tableWriter.AppendHeader(tableGetTasksHeaderRow())
+	tableWriter.AppendRows(tableGetTasksBodyRows(tasks))
+	return tableWriter.Render()
+}
+
+func tableGetTasksHeaderRow() table.Row {
+	return table.Row{"uuid", "status", "project", "tags", "description", "due", "notify"}
+}
+
+func tableGetTasksBodyRows(tasks []*models.Task) []table.Row {
 	mbDate := func(date *time.Time) string {
 		if date == nil {
 			return ""
@@ -109,10 +160,10 @@ func prettyOutputTable(tasks []*models.Task) string {
 			return date.In(time.Local).Format("2006-01-02 15:04")
 		}
 	}
-	tableWriter := table.NewWriter()
-	tableWriter.AppendHeader(table.Row{"uuid", "status", "project", "tags", "description", "due", "notify"})
+
+	result := []table.Row{}
 	for _, task := range tasks {
-		tableWriter.AppendRow(table.Row{
+		result = append(result, table.Row{
 			task.UUID.String(),
 			task.Status,
 			task.Project,
@@ -122,11 +173,11 @@ func prettyOutputTable(tasks []*models.Task) string {
 			mbDate(task.Notify),
 		})
 	}
-	return tableWriter.Render()
+	return result
 }
 
-func prettyOutputJson(tasks []*models.Task) string {
-	data, err := json.MarshalIndent(tasks, "", "  ")
+func prettyOutputJson(value any) string {
+	data, err := json.MarshalIndent(value, "", "  ")
 	if err != nil {
 		log.Fatalf("cant marshal tasks: %s", err.Error())
 	}

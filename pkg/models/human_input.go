@@ -38,6 +38,9 @@ ACTIONS
     done UUID
         Set status completed for task by the given UUID.
 
+    agenda
+        Show tasks that due today, next 7 day and overdue
+
 OPTIONS
     project:PROJECT_NAME
         Specifies the project name associated with the task. 
@@ -96,6 +99,7 @@ const (
 	HumanActionInfo   HumanAction = "info"
 	HumanActionCopy   HumanAction = "copy"
 	HumanActionDone   HumanAction = "done"
+	HumanActionAgenda HumanAction = "agenda"
 )
 
 type HumanInputParserResult struct {
@@ -221,12 +225,14 @@ func ParseHumanInput(input string) (*HumanInputParserResult, error) {
 		action = HumanActionCopy
 	case string(HumanActionDone):
 		action = HumanActionDone
+	case string(HumanActionAgenda):
+		action = HumanActionAgenda
 	default:
 		return nil, fmt.Errorf("invalid action: %s", input[:firstSpace])
 	}
 	result.Action = action
 	if firstSpace+1 >= len(input) {
-		if action == HumanActionList {
+		if action == HumanActionList || action == HumanActionAgenda {
 			result.Options = HumanInputOptions{}
 			return result, nil
 		}
@@ -251,6 +257,10 @@ func ParseHumanInput(input string) (*HumanInputParserResult, error) {
 		result.Options = HumanInputOptions{
 			Status: &completedStatus,
 		}
+		return result, nil
+	}
+	if action == HumanActionAgenda {
+		result.Options = HumanInputOptions{}
 		return result, nil
 	}
 	options, err := parseHumanOptions(input)

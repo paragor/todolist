@@ -81,6 +81,11 @@ func (t *TelegramServer) humanInput(input string) error {
 			return fmt.Errorf("cant send response (%s): %w", task.UUID, err)
 		}
 		return nil
+	case models.HumanActionAgenda:
+		if err := t.TriggerAgenda(); err != nil {
+			return fmt.Errorf("cant send agenda: %w", err)
+		}
+		return nil
 	case models.HumanActionList:
 		tasks, err := t.db.All()
 		if err != nil {
