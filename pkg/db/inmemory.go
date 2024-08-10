@@ -10,7 +10,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"sort"
 	"sync"
 )
 
@@ -86,9 +85,7 @@ func (r *inMemoryTasksRepository) All() ([]*models.Task, error) {
 	for _, t := range r.db.Tasks {
 		result = append(result, t.Clone(false))
 	}
-	sort.Slice(result, func(i, j int) bool {
-		return result[i].UUID.String() < result[j].UUID.String()
-	})
+	models.SortTasks(result)
 	return result, nil
 }
 

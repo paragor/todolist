@@ -110,14 +110,14 @@ func prettyOutputTable(tasks []*models.Task) string {
 		}
 	}
 	tableWriter := table.NewWriter()
-	tableWriter.AppendHeader(table.Row{"uuid", "project", "description", "status", "tags", "due", "notify"})
+	tableWriter.AppendHeader(table.Row{"uuid", "status", "project", "tags", "description", "due", "notify"})
 	for _, task := range tasks {
 		tableWriter.AppendRow(table.Row{
 			task.UUID.String(),
-			task.Project,
-			task.Description,
 			task.Status,
+			task.Project,
 			strings.Join(task.Tags, ", "),
+			task.Description,
 			mbDate(task.Due),
 			mbDate(task.Notify),
 		})
