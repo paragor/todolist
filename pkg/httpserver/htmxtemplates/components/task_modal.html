@@ -38,7 +38,7 @@
                 <div class="form-group">
                     <label for="due-{{.Task.UUID}}">Due</label>
                     <input type="datetime-local" class="form-control" id="due-{{.Task.UUID}}" name="due"
-                           value="{{if .Task.Due}}{{.Task.Due.Format "2006-01-02 15:04:05"}}{{end}}">
+                           value="{{if .Task.Due}}{{.Task.Due.Format "2006-01-02T15:04"}}{{end}}">
                 </div>
                 <div>
                     {{ template "component/datetime_suggest" (printf "%s%s" "due-" .Task.UUID) }}
@@ -46,7 +46,7 @@
                 <div class="form-group">
                     <label for="notify-{{.Task.UUID}}">Notify</label>
                     <input type="datetime-local" class="form-control" id="notify-{{.Task.UUID}}" name="notify"
-                           value="{{if .Task.Notify}}{{.Task.Notify.Format "2006-01-02 15:04:05"}}{{end}}">
+                           value="{{if .Task.Notify}}{{.Task.Notify.Format "2006-01-02T15:04"}}{{end}}">
                 </div>
                 <div>
                     {{ template "component/datetime_suggest" (printf "%s%s" "notify-" .Task.UUID) }}
