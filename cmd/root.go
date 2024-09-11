@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-var homeDir = path.Join(os.Getenv("HOME"), ".config/todolist")
+var homeDir = path.Join(Or(os.Getenv("TODOLIST_HOME"), os.Getenv("HOME")), ".config/todolist")
 
 func init() {
 	cobra.OnInitialize(initConfig)
@@ -49,4 +49,18 @@ func initConfig() {
 	if err := yaml.Unmarshal(data, cfg); err != nil {
 		panic(fmt.Errorf("cant unmarshal config file: %w", err).Error())
 	}
+}
+
+func Or[T comparable](value T, alternatives ...T) T {
+	var zero T
+	if value != zero {
+		return value
+	}
+	for _, alternative := range alternatives {
+		if alternative != zero {
+			return alternative
+		}
+	}
+
+	return zero
 }

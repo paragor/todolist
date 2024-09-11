@@ -19,7 +19,7 @@ func TestParseHumanInput(t *testing.T) {
 	}{
 		{
 			args: args{
-				input: " modify 358bb57b-7d84-47a0-a3d5-29fcd77f87b9  project:one bla due:2024-10-15T10:00:00 +hui blabla bla -bui notify: status:pending\t \n ",
+				input: " modify 358bb57b-7d84-47a0-a3d5-29fcd77f87b9  project:one bla due:2024-10-15T10:00:00 +hui blabla bla !bui notify: status:pending\t \n ",
 			},
 			want: &HumanInputParserResult{
 				Action:     HumanActionModify,

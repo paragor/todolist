@@ -1,11 +1,12 @@
 module github.com/paragor/todo
 
-go 1.21.3
+go 1.23.0
 
 require (
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/handlers v1.5.2
 	github.com/gorilla/mux v1.8.1
+	github.com/jedib0t/go-pretty/v6 v6.5.9
 	github.com/prometheus/client_golang v1.19.1
 	github.com/spf13/cobra v1.8.1
 	github.com/zitadel/oidc/v3 v3.26.1
@@ -22,7 +23,6 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/gorilla/securecookie v1.1.2 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/jedib0t/go-pretty/v6 v6.5.9 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/muhlemmer/gu v0.3.1 // indirect
 	github.com/prometheus/client_model v0.5.0 // indirect
