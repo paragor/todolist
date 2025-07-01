@@ -6,7 +6,6 @@ server:
             path: .config/todolist/database.json
         postgresql:
             url: postgres://username:password@localhost:5432/database_name?sslmode=disable
-    database_file: .config/todolist/database.json
     listen_addr: :8080
     public_url: ""
     auth_enabled: false
