@@ -31,6 +31,10 @@ podLabels: {}
 podSecurityContext: {}
   # fsGroup: 2000
 
+extraEnv: []
+#   - name: TZ
+#     value: "Asia/Bangkok"
+
 securityContext: {}
   # capabilities:
   #   drop:
