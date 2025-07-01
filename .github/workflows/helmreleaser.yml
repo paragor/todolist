@@ -2,8 +2,6 @@ name: helmreleaser
 
 on:
   push:
-    paths:
-      - charts/**
     tags:
       - '*'
 
