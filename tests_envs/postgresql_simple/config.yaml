@@ -1,11 +1,9 @@
 server:
     diagnostic_endpoints_enabled: true
     database:
-        type: file # postgresql | file
-        file:
-            path: .config/todolist/database.json
+        type: postgresql
         postgresql:
-            url: postgres://username:password@localhost:5432/database_name?sslmode=disable
+            url: postgres://postgres:todolist@127.0.0.1:5432/postgres?sslmode=disable
     database_file: .config/todolist/database.json
     listen_addr: :8080
     public_url: ""

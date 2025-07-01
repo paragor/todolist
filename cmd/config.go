@@ -1,13 +1,14 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
-	"github.com/zitadel/oidc/v3/pkg/oidc"
-	"gopkg.in/yaml.v3"
 	"log"
 	"os"
 	"path"
 	"time"
+
+	"github.com/spf13/cobra"
+	"github.com/zitadel/oidc/v3/pkg/oidc"
+	"gopkg.in/yaml.v3"
 )
 
 var cfg = newDefaultConfig()
@@ -34,12 +35,20 @@ var configPersistCmd = &cobra.Command{
 
 type Config struct {
 	Server struct {
-		DiagnosticEndpointsEnabled bool   `yaml:"diagnostic_endpoints_enabled"`
-		DatabaseFile               string `yaml:"database_file"`
-		ListenAddr                 string `yaml:"listen_addr"`
-		PublicUrl                  string `yaml:"public_url"`
-		AuthEnabled                bool   `yaml:"auth_enabled"`
-		TokenAuth                  struct {
+		DiagnosticEndpointsEnabled bool `yaml:"diagnostic_endpoints_enabled"`
+		Database                   struct {
+			Type string `json:"type"`
+			File struct {
+				Path string `yaml:"path"`
+			} `yaml:"file"`
+			Postgresql struct {
+				Url string `yaml:"url"`
+			} `yaml:"postgresql"`
+		} `yaml:"database"`
+		ListenAddr  string `yaml:"listen_addr"`
+		PublicUrl   string `yaml:"public_url"`
+		AuthEnabled bool   `yaml:"auth_enabled"`
+		TokenAuth   struct {
 			Enabled     bool   `yaml:"enabled"`
 			ClientToken string `yaml:"client_token"`
 		} `yaml:"token_auth"`
@@ -76,7 +85,8 @@ type Config struct {
 func newDefaultConfig() *Config {
 	c := &Config{}
 	c.Server.ListenAddr = ":8080"
-	c.Server.DatabaseFile = path.Join(homeDir, "database.json")
+	c.Server.Database.Type = "file"
+	c.Server.Database.File.Path = path.Join(homeDir, "database.json")
 	c.Server.DiagnosticEndpointsEnabled = true
 
 	c.Server.TokenAuth.ClientToken = "api_password"

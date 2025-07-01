@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/paragor/todo/pkg/cron"
 	"github.com/paragor/todo/pkg/db"
 	"github.com/paragor/todo/pkg/events"
@@ -10,7 +12,6 @@ import (
 	"github.com/paragor/todo/pkg/service"
 	"github.com/paragor/todo/pkg/telegram"
 	"github.com/spf13/cobra"
-	"log"
 )
 
 func init() {
@@ -25,11 +26,26 @@ var serverCmd = &cobra.Command{
 		runnable := []service.Runnable{}
 		var repo models.Repository
 		{
-			originRepo := db.NewInMemoryTasksRepository(cfg.Server.DatabaseFile)
-			repo = events.NewSpyRepository(originRepo)
-			runnable = append(runnable, originRepo)
+			dbConfig := cfg.Server.Database
+			switch dbConfig.Type {
+			case "file":
+				if dbConfig.File.Path == "" {
+					log.Fatalln("database config: type is set as file, but path is not provided")
+				}
+				originRepo := db.NewInMemoryTasksRepository(cfg.Server.Database.File.Path)
+				runnable = append(runnable, originRepo)
+				repo = originRepo
+			case "postgresql":
+				if dbConfig.Postgresql.Url == "" {
+					log.Fatalln("database config: type is set as postgresql, but url is not provided")
+				}
+				originRepo := db.NewPostgresqlTasksRepository(cfg.Server.Database.Postgresql.Url)
+				runnable = append(runnable, originRepo)
+				repo = originRepo
+			}
 		}
-		
+		repo = events.NewSpyRepository(repo)
+
 		authConfig := &httpserver.AuthChainConfig{
 			AuthBaseConfig:     nil,
 			AuthTelegramConfig: nil,

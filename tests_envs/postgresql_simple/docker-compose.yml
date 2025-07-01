@@ -1,0 +1,8 @@
+services:
+  db:
+    image: postgres
+    shm_size: 128mb
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: todolist
