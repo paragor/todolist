@@ -2,6 +2,16 @@ apiVersion: v1
 entries:
   todolist:
   - apiVersion: v2
+    appVersion: 0.0.7
+    created: "2025-07-04T09:52:34.574354986Z"
+    description: A Helm chart for Kubernetes
+    digest: bc20b0e7e1a2b4e59c680b4330d712572e0bf96b8760e9cd995091068da5551e
+    name: todolist
+    type: application
+    urls:
+    - https://github.com/paragor/todolist/releases/download/todolist-0.0.7-helm/todolist-0.0.7.tgz
+    version: 0.0.7
+  - apiVersion: v2
     appVersion: 0.0.6
     created: "2025-07-01T08:29:16.017482436Z"
     description: A Helm chart for Kubernetes
@@ -31,4 +41,4 @@ entries:
     urls:
     - https://github.com/paragor/todolist/releases/download/todolist-0.0.4-helm/todolist-0.0.4.tgz
     version: 0.0.4
-generated: "2025-07-01T08:29:16.017501612Z"
+generated: "2025-07-04T09:52:34.574370335Z"
