@@ -21,16 +21,16 @@ jobs:
           fetch-depth: 0
       - name: List charts file
         id: charts_file
-        run: echo "file_list=$(find ./charts -name Chart.yaml -depth 2 |  paste -sd, -)" >> "$GITHUB_OUTPUT"
+        run: echo "file_list=$(find ./charts -name Chart.yaml -mindepth 2 -maxdepth 2)" >> "$GITHUB_OUTPUT"
+      - name: Export tag without prefix
+        run: |
+          echo "GITHUB_TAG_VERSION=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_ENV"
 
       - uses: iamazeem/substitute-action@v1
-        env:
-          GITHUB_TAG_VERSION: ${GITHUB_REF#refs/tags/v}
         with:
-          variables: |
-            GITHUB_TAG_VERSION
-          input-files: |
-            ${{ steps.charts_file.outputs.file_list }}
+          enable-in-place: true
+          variables: GITHUB_TAG_VERSION
+          input-files: ${{ steps.charts_file.outputs.file_list }}
 
       - name: Configure Git
         run: |
