@@ -28,7 +28,6 @@ func (r *RepeatableCron) Start(ctx context.Context, stopper chan<- error) error 
 		for {
 			select {
 			case cronErr := <-result:
-				close(result)
 				if cronErr != nil {
 					stopper <- fmt.Errorf("cron error: %w", cronErr)
 					return
