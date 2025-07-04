@@ -56,12 +56,14 @@ dockers:
     use: buildx
     build_flag_templates:
       - "--builder=default"
+      - "--platform=linux/amd64"
   - image_templates:
       - "ghcr.io/paragor/todolist:{{ .Tag }}-arm64"
     goarch: arm64
     use: buildx
     build_flag_templates:
       - "--builder=default"
+      - "--platform=linux/arm64"
 docker_manifests:
   - name_template: "ghcr.io/paragor/todolist:{{ .Tag }}"
     image_templates:
