@@ -5,9 +5,9 @@
 replicaCount: 1
 
 image:
-  repository: paragor/todolist
+  repository: ghcr.io/paragor/todolist
   pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart appVersion.
+  # Overrides the image tag whose default is the chart.
   tag: ""
 
 imagePullSecrets: []

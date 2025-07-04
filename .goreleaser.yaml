@@ -51,19 +51,19 @@ changelog:
 
 dockers:
   - image_templates:
-      - "paragor/todolist:{{ .Tag }}-amd64"
+      - "ghcr.io/paragor/todolist:{{ .Tag }}-amd64"
     goarch: amd64
     use: buildx
     build_flag_templates:
       - "--builder=default"
   - image_templates:
-      - "paragor/todolist:{{ .Tag }}-arm64"
+      - "ghcr.io/paragor/todolist:{{ .Tag }}-arm64"
     goarch: arm64
     use: buildx
     build_flag_templates:
       - "--builder=default"
 docker_manifests:
-  - name_template: "paragor/todolist:{{ .Tag }}"
+  - name_template: "ghcr.io/paragor/todolist:{{ .Tag }}"
     image_templates:
-      - "paragor/todolist:{{ .Tag }}-amd64"
-      - "paragor/todolist:{{ .Tag }}-arm64"
+      - "ghcr.io/paragor/todolist:{{ .Tag }}-amd64"
+      - "ghcr.io/paragor/todolist:{{ .Tag }}-arm64"
